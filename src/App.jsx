@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import LeadGate from "./LeadGate.jsx";
+import { readUnlocked } from "./leads.js";
 
 const GOLD = "#C9A84C";
 const NAVY = "#0D1B2A";
@@ -140,6 +142,7 @@ export default function App() {
   const [retornoDecum, setRetornoDecum] = useState(6);
   const [inflacao, setInflacao] = useState(4.5);
   const [showCTA, setShowCTA] = useState(false);
+  const [lead, setLead] = useState(() => readUnlocked("simulador-aposentadoria"));
 
   useEffect(() => { setTimeout(() => setShowCTA(true), 4000); }, []);
 
@@ -267,6 +270,24 @@ export default function App() {
         </div>
 
         {/* Results */}
+        {!lead ? (
+          <LeadGate
+            ferramenta="simulador-aposentadoria"
+            titulo="Informe seu nome e WhatsApp para ver se seu plano sustenta a renda que você quer."
+            subtitulo="Ajuste os valores acima quando quiser. Depois de liberada, a projeção atualiza na hora."
+            botao="VER MINHA PROJEÇÃO"
+            getResultado={() => ({
+              idade_atual: idadeAtual, idade_aposentadoria: idadeAposent,
+              patrimonio_atual: patrimonioAtual, aporte_mensal: aporteMensal,
+              renda_desejada: rendaDesejada, retorno_acumulacao: retornoAcum,
+              retorno_aposentadoria: retornoDecum, inflacao,
+              patrimonio_projetado: Math.round(patrimonioAposent),
+              renda_gerada: Math.round(rendaMensalGerada),
+              meta_atingida_pct: Math.round(pctMeta), anos_renda: anosRenda,
+            })}
+            onUnlock={(nome) => setLead({ nome })}
+          />
+        ) : (
         <div style={{ background: "white", borderRadius: "16px", padding: "1.8rem", boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04)", border: "1px solid #E5E7EB" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.2rem" }}>
             <div style={{ width: "4px", height: "24px", background: TEAL, borderRadius: "2px" }} />
@@ -308,7 +329,7 @@ export default function App() {
           </div>
 
           {/* Detail stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "0.5rem", marginBottom: "1.2rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "0.5rem", marginBottom: "1.2rem" }}>
             {[
               { label: "Total investido", value: fmt(totalInvestido), color: "#6B7280" },
               { label: "Rendimento", value: fmt(rendimentoTotal), color: TEAL },
@@ -352,7 +373,7 @@ export default function App() {
               15 anos de experiência. CVM registrado. Fee-only.
             </div>
             <a href={`https://wa.me/5541998817220?text=${encodeURIComponent(
-              `Olá Gabriel! Usei o Simulador de Aposentadoria e quero um plano personalizado.\n\n` +
+              `Olá Gabriel! ${lead ? `Aqui é ${lead.nome}. ` : ""}Usei o Simulador de Aposentadoria e quero um plano personalizado.\n\n` +
               `📊 Meus dados:\n` +
               `• Idade: ${idadeAtual} anos\n` +
               `• Aposentar aos: ${idadeAposent} anos\n` +
@@ -383,13 +404,14 @@ export default function App() {
               Seus dados da simulação já vão junto na mensagem
             </div>
             <div style={{ borderTop: "1px solid #ffffff15", marginTop: "0.8rem", paddingTop: "0.8rem", display: "flex", justifyContent: "center", gap: "1rem" }}>
-              <a href="https://www.instagram.com/gabrielinveste" target="_blank" rel="noopener noreferrer"
+              <a href="https://www.instagram.com/gabrielinveste_" target="_blank" rel="noopener noreferrer"
                 style={{ fontSize: "0.72rem", color: GOLD, textDecoration: "none", fontWeight: 600 }}>
                 📸 Instagram
               </a>
             </div>
           </div>
         </div>
+        )}
 
         {/* Disclaimer */}
         <div style={{ fontSize: "0.65rem", color: "#9CA3AF", textAlign: "center", padding: "0.5rem 1rem", lineHeight: 1.6 }}>
